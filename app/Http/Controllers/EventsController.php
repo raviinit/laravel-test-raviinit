@@ -104,11 +104,12 @@ class EventsController extends BaseController
 
     public function getEventsWithWorkshops() {
         try {
-            $arrayEvents = $this->getWarmupEvents()->toArray();
+            // Using data objects / arrays
+            $arrayEvents = $this->getWarmupEvents()->toArray(); // existing ORM eloquent query 1 used
             $newEvents = array();
             $newEventsReturn = array();
             foreach ($arrayEvents as $data) {
-                $workshops = Workshop::where('event_id', '=', $data['id'])->get();
+                $workshops = Workshop::where('event_id', '=', $data['id'])->get(); // ORM eloquent query 2 used to pull the workshops
                 foreach ($data as $k => $v) {
                     $newEvents[$k] = $v;
                 }
@@ -123,7 +124,7 @@ class EventsController extends BaseController
         }
         catch (\Exception $e)
         {
-            throw new \Exception('implement in coding task 1 - Exception/Error');
+            throw new \Exception('Implement in coding task 1 - Exception/Error');
         }
     }
 
@@ -203,6 +204,8 @@ class EventsController extends BaseController
      */
 
     public function getFutureEventsWithWorkshops() {
-        throw new \Exception('implement in coding task 2');
+        // working on it
+
+        throw new \Exception('Implement in coding task 2 - Exception/Error');
     }
 }
