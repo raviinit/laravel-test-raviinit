@@ -1,11 +1,9 @@
 <?php
 
-
 namespace App\Http\Controllers;
 
 use App\Models\MenuItem;
 use Illuminate\Routing\Controller as BaseController;
-
 class MenuController extends BaseController
 {
     /*
@@ -94,7 +92,51 @@ class MenuController extends BaseController
     ]
      */
 
-    public function getMenuItems() {
-        throw new \Exception('implement in coding task 3');
+    /**
+     * getMenuItems()
+     * returns the menus available
+     * URL - /menu
+     *
+     * @return void
+     */
+    public function getMenuItems() 
+    {
+        try {
+            /* method 1 - using recursive method */
+            $menuTree = MenuController::createMenuItems(MenuItem::get()->toArray());
+            return json_encode($menuTree);
+
+            /* method 2 - without recursive function, using eloquent 'one to many' */
+            //return MenuItem::with('children')->where('parent_id',null)->get();    
+        }
+        catch(\Exception $e)
+        {
+            throw new \Exception('implement in coding task 3');
+        }
     }
+
+    /**
+     * createMenuItems()
+     * recursive function to create menu items
+     * URL - /menu
+     * 
+     * @param [type] $menuItems
+     * @param integer $parentId
+     * @return void
+     */
+    static function createMenuItems($menuItems, $parentId = 0)
+    {
+        $recursiveChildren = array();
+        foreach ($menuItems as $menuItem) {
+            if($menuItem['parent_id'] == $parentId){
+               $child = MenuController::createMenuItems($menuItems, $menuItem['id']);
+               $menuItem['children'] = ($child) ? $child : array();
+               $recursiveChildren[] = $menuItem;
+            }
+        }
+        return $recursiveChildren;         
+    }
+
+
+
 }

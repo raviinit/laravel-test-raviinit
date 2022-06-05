@@ -10,11 +10,23 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
-
 class EventsController extends BaseController
 {
-    public function getWarmupEvents() {
-        return Event::all();
+    /**
+     * getWarmupEvents()
+     * URL - /warmupevents
+     * This would return all the events available
+     * Used in 'getEventsWithWorkshops()'
+     *
+     * @return void
+     */
+    public function getWarmupEvents() 
+    {
+        /* method 1 */
+        //return Event::all();
+
+        /* method 2 - we should use this, since we could modify the columns or query */
+        return Event::get();
     }
 
     /*
@@ -102,14 +114,27 @@ class EventsController extends BaseController
     ]
      */
 
-    public function getEventsWithWorkshops() {
-        try {
-            // Using data objects / arrays
-            $arrayEvents = $this->getWarmupEvents()->toArray(); // existing ORM eloquent query 1 used
+    /**
+     * getEventsWithWorkshops()
+     * returns all the events associated with workshops
+     * URL - /events
+     *
+     * @return void
+     */
+    public function getEventsWithWorkshops() 
+    {
+        try {          
+            /* method 1 - Using ORM eloquent query */
+            return Event::with('workshops')->get();
+
+            /* method 2 */
+            /* Using data objects / arrays */
+            /*
+            $arrayEvents = $this->getWarmupEvents()->toArray(); /* existing ORM eloquent query 1 used * /
             $newEvents = array();
             $newEventsReturn = array();
             foreach ($arrayEvents as $data) {
-                $workshops = Workshop::where('event_id', '=', $data['id'])->get(); // ORM eloquent query 2 used to pull the workshops
+                $workshops = Workshop::where('event_id', '=', $data['id'])->get(); /* ORM eloquent query 2 used to pull the workshops * /
                 foreach ($data as $k => $v) {
                     $newEvents[$k] = $v;
                 }
@@ -121,6 +146,7 @@ class EventsController extends BaseController
                 array_push($newEventsReturn, $newEvents);
             }
             return $newEventsReturn;
+            */
         }
         catch (\Exception $e)
         {
@@ -203,9 +229,28 @@ class EventsController extends BaseController
     ```
      */
 
-    public function getFutureEventsWithWorkshops() {
-        // working on it
+    /**
+     * getFutureEventsWithWorkshops()
+     * returns all the future events associated with workshops
+     * URL - /futureevents
+     *
+     * @return void
+     */
+    public function getFutureEventsWithWorkshops() 
+    {
+        try {
+            /* Future events; workshops 'start' date is compared with current date and time and it should be
+            greater than current date and time.
 
-        throw new \Exception('Implement in coding task 2 - Exception/Error');
+            Eloquent query contains at least 3 queries inside along with where condition to retrieve the desired records
+            */
+            $futureEvents = Event::whereHas('workshops', function($workshops) {
+                return $workshops->where('start', '>', date('Y-m-d H:i:s'));
+            })->with('workshops')->get();
+            return json_encode($futureEvents);
+        }
+        catch(\Exception $e) {
+            throw new \Exception('Implement in coding task 2 - Exception/Error');
+        }
     }
 }
